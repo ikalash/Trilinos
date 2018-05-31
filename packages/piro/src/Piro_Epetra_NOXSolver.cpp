@@ -178,6 +178,8 @@ Piro::Epetra::NOXSolver::NOXSolver(
   tls_strategy = tls_factory.create(piroParams, linsys);
   current_iteration = -1;
   writeOnlyConvergedSol = piroParams->get("Write Only Converged Solution", true);
+
+  piroParams->set<int>("Step Number", stepNum);
 }
 
 Piro::Epetra::NOXSolver::~NOXSolver()
@@ -398,12 +400,15 @@ void Piro::Epetra::NOXSolver::evalModel(const InArgs& inArgs,
     utils.out() << std::endl;
   }
 
+  // Set step number
+  stepNum++;
+  piroParams->set<int>("Step Number", stepNum);
+
   // Print stats
   bool print_stats = piroParams->get("Print Convergence Stats", true);
   if (print_stats) {
     // static int totalNewtonIters=0;
     // static int totalKrylovIters=0;
-    // static int stepNum=0;
     int NewtonIters = piroParams->sublist("NOX").
       sublist("Output").get("Nonlinear Iterations", -1000);
 
@@ -412,7 +417,6 @@ void Piro::Epetra::NOXSolver::evalModel(const InArgs& inArgs,
 
     totalNewtonIters += NewtonIters;
     totalKrylovIters += KrylovIters;
-    stepNum++;
 
     utils.out() << "Convergence Stats: for step  #" << stepNum << " : Newton, Krylov, Kr/Ne; LastKrylov, LastTol: " 
 	 << NewtonIters << "  " << KrylovIters << "  " 
@@ -1014,4 +1018,5 @@ void Piro::Epetra::NOXSolver::resetCounters()
   totalNewtonIters=0;
   totalKrylovIters=0;
   stepNum=0;
+  piroParams->set<int>("Step Number", stepNum);
 }
